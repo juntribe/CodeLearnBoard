@@ -18,7 +18,7 @@ import java.util.List;
 @Log4j
 public class BoardMapperTests {
 
-	@Setter(onMethod_=@Autowired)
+	@Setter(onMethod_={@Autowired})
 	private BoardMapper mapper;
 	
 	@Test
@@ -64,10 +64,10 @@ public class BoardMapperTests {
 	@Test
 	public void testUpdate() {
 		BoardVO board = new BoardVO();
-		board.setBno(5L);
+		board.setBno(54272L);
 		board.setTitle("수정된 제목");
 		board.setContent("수정된 내용");
-		board.setWriter("user00");
+		board.setWriter("user01");
 		
 		int count = mapper.update(board);
 		log.info("UPDATE COUNT :" + count);

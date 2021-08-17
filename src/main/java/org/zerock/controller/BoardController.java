@@ -3,6 +3,7 @@ package org.zerock.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -62,11 +63,13 @@ public class BoardController {
 		model.addAttribute("pageMaker" , new PageDTO(cri,total));
 	}
 	@GetMapping("/register")
+	@PreAuthorize("isAuthenticated()")
 	public void register() {
 		
 	}
 	
 	@PostMapping("/register")
+	@PreAuthorize("isAuthenticated()")
 	public String register(BoardVO board, RedirectAttributes rttr) {
 		log.info("register :" + board);
 		if (board.getAttachList() !=null){
@@ -75,7 +78,7 @@ public class BoardController {
 		log.info("===========");
 
 		service.register(board);
-//		rttr.addFlashAttribute("result" , board.getBno());
+		rttr.addFlashAttribute("result" , board.getBno());
 		return "redirect:/board/list";
 	}
 	@GetMapping({"/get" ,"/modify"})
@@ -83,27 +86,29 @@ public class BoardController {
 		log.info("/get or modify");
 		model.addAttribute("board",service.get(bno));
 	}
-	
+
+	@PreAuthorize("principal.username == #board.writer")
 	@PostMapping("/modify")
-	public String modify(BoardVO board, @ModelAttribute("cri") Criteria cri, RedirectAttributes rttr) {
+	public String modify(BoardVO board,Criteria cri, RedirectAttributes rttr) {
 		log.info("modify:" + board);
 		if(service.modify(board)) {
 			rttr.addFlashAttribute("result", "success");
 		}
-		rttr.addAttribute("pageNum",cri.getPageNum());
-		rttr.addAttribute("amount",cri.getAmount());
-		rttr.addAttribute("keyword",cri.getKeyword());
-		rttr.addAttribute("type",cri.getType());
-		return "redirect:/board/list";
+//		rttr.addAttribute("pageNum",cri.getPageNum());
+//		rttr.addAttribute("amount",cri.getAmount());
+//		rttr.addAttribute("keyword",cri.getKeyword());
+//		rttr.addAttribute("type",cri.getType());
+		return "redirect:/board/list" + cri.getListLink();
 	}
+	@PreAuthorize("principal.username == #writer")
 	@PostMapping("/remove")
-	public String remove(@RequestParam("bno") Long bno, @ModelAttribute("cri") Criteria cri,RedirectAttributes rttr) {
+	public String remove(@RequestParam("bno") Long bno, Criteria cri,RedirectAttributes rttr ,String writer) {
 		log.info("remove" + bno);
 		List<BoardAttachVO> attachList =service.getAttachList(bno);
 		if (service.remove(bno)) {
 			deleteFiles(attachList);
 			rttr.addFlashAttribute("result","success");
-			
+
 		}
 //		rttr.addAttribute("pageNum",cri.getPageNum());
 //		rttr.addAttribute("amount",cri.getAmount());
